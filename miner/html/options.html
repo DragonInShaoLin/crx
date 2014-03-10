@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>chrome浏览器安全扫描插件</title>
+    <meta charset="utf-8" />
+
+    <link rel="stylesheet" href="../css/jquery-ui.css" />
+    <script src="../js/jquery-1.9.1.js"></script>
+    <script src="../js/jquery-ui.js"></script>
+    <script src="../js/self.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/options.js"></script>
+    
+    <style rel="stylesheet" type="text/css">
+
+    body{
+        background-color:#eee;
+        font-family:arial,sans-serif;
+        font-size:13px
+    }
+
+    #content{
+        background-color: white;
+        border: 1px solid #DDD;
+        margin: 40px auto 20px;
+        padding: 12px;
+        width: 1000px;
+        -webkit-border-radius: 12px;
+        box-shadow: 0px 0px 10px #ddd;
+    }
+
+    h1{
+        color:#333333;
+        font-size:1.5em;
+        margin:0.7em 0 0;
+    }
+
+    p{
+        font-size: 12px;
+    }
+
+    input.number{
+        Positioning-left: 150px;
+        width: 80px;
+    }
+        
+    .buttons{
+        clear:left;
+        padding:5px;
+        text-align: center;
+    }
+
+    #save_status{
+        background-color:#fff1a8;
+        font-weight:bold;
+        margin-left:10px;
+        opacity:0;
+        padding:3px;
+        border-radius:3px
+    }
+
+    .footer{
+        text-align:center;
+        margin-top:0.4em;
+        color: rgba(0,0,0,0.2);
+    }
+
+    .footer a{
+        color: #333;
+        text-shadow: 1px 1px 1px white;
+        text-decoration: none;
+        border: 1px solid #ddd;
+        padding: 5px;
+        background: -webkit-gradient(linear, center top, center bottom, from(white), to(#fafafa));
+        border-radius: 5px;
+    }
+
+    .footer a:hover{
+        color: #111;
+        text-shadow: 1px 1px 1px white;
+        text-decoration: underline;
+    }
+
+    #msg{
+        background: #090;
+        border-radius: 5px 5px;
+        color: #fff;
+        font-weight: bold;
+        padding: 5px;
+        text-align: center;
+    }
+
+    #blacklistEntries{
+        width: 500px;
+        height: 200px;
+    }
+
+    #logo{
+        background: -webkit-gradient(linear, center top, center bottom, from(white), to(#EEE));
+        padding: 15px 0px 10px 10px;
+        height: 25px;
+        border-bottom: 1px solid #DDD;
+        margin: -12px -12px 20px -12px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        text-shadow: 1px 1px 1px white;
+        color: #000;
+    }
+
+    span{
+        font-family: monospace;
+        background: #D9EDF7;
+        padding: 3px;
+        color: #3A87AD;
+        border-radius: 5px;
+    }
+
+    label{
+        font-weight: bold;
+        color: #777;
+    }
+
+    #support{
+        margin: 0px -12px 10px -12px;
+        background: #fff;
+        padding: 0px 10px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        text-align: center;
+    }
+
+    .option_row{
+        clear:left;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .option_name{
+        float:left;
+        width:160px;
+        font-weight:bold;
+        margin-right:20px;
+    }
+
+    .option_picker{
+        margin-left: 20px;
+    }
+
+    hr{
+        border: 1px solid #EEE;
+        border-bottom: none;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .hint{
+        margin-right: 50px;
+        margin-left: 50px;
+        margin-bottom: -5px;
+        float: right;
+    }
+    
+    .hint-left{
+        margin-left: 50px;
+        margin-bottom: -5px;
+    }
+    </style>
+
+</head>
+<body>
+<div id="tabs">
+    <ul>
+        <li><a href="#function_option">功能选项</a></li>
+        <li><a href="#scan_option">扫描选项</a></li>
+        <li><a href="#user_option">用户信息</a></li>
+        <li><a href="#version_option">版本信息</a></li>
+    </ul>
+      
+    <div id="function_option">
+        <div id="content">
+            <h1 id="logo">插件功能设置选项(注意：设置实时保存并生效）</h1>
+            <div class="option_row">
+                <div class="option_name">任务模式:</div>
+                <div class="option_picker">
+                    <label><input set='task_mode' type=radio checked name="task_mode_radio" id="realtime"></input>实时模式</label>
+                    <label><input set='task_mode' type=radio name="task_mode_radio" id="solo_url" disabled="disabled"></input>单url模式</label>
+                    <label><input set='task_mode' type=radio name="task_mode_radio" id="record"></input>录制模式</label>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="实时模式：实时抓取页面中产生的所有http流量并扫描&#013;单url模式：抓取浏览器地址栏中的单条url&#013;录制模式：抓取抓取页面中产生的所有http流量，在手动启动扫描时，将这些抓取的url连同cookie一起提交扫描" />
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">抓取以下数据类型:</div>
+                <div class="option_picker">
+                    <label><input set='traffic_type' name="document" id="document" type="checkbox" checked value=1 disabled="disabled"></input>文档</label>
+                    <label><input set='traffic_type' name="frame" id="stylesheet" type="checkbox" checked value=2 disabled="disabled"></input>框架</label>
+                    <label><input set='traffic_type' name="css" id="css" type="checkbox" checked value=3 disabled="disabled"></input>样式表</label>
+                    <label><input set='traffic_type' name="script" id="script" type="checkbox" checked value=4 disabled="disabled"></input>脚本</label>
+                    <label><input set='traffic_type' name="image" id="image" type="checkbox" checked value=5 disabled="disabled"></input>图片</label>
+                    <label><input set='traffic_type' name="XMLHttpRequest" id="XMLHttpRequest" type="checkbox" checked value=6></input>Ajax请求</label>
+                    <label><input set='traffic_type' name="object" id="object" type="checkbox" checked value=7 disabled="disabled"></input>对象</label>
+                    <label><input set='traffic_type' name="other" id="other" type="checkbox" checked value=8 disabled="disabled"></input>其他</label>
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">抓取以下请求方式:</div>
+                <div class="option_picker">
+                    <label><input set='traffic_method' name="get" id="get" type="checkbox" checked value=1 disabled="disabled"></input>GET</label>
+                    <label><input set='traffic_method' name="post" id="post" type="checkbox" checked value=2 disabled="disabled"></input>POST</label>
+                    <label><input set='traffic_method' name="head" id="head" type="checkbox" checked value=3 disabled="disabled"></input>HEAD</label>
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">exclude列表:</div>
+                <div class="option_picker">
+                    <textarea name="exclude_list" id="exclude_list" rows="4" cols="96" placeholder="匹配该列表中的任一正则表达式的url都将被忽略，不进行扫描。每一项为一个正则表达式，多项之间由逗号分隔，例如：^https?://.*scan\.baidu\.com,^https?://.*erp\.baidu\.com,^https?://.*hm\.baidu\.com,^https?://.*family\.baidu\.com"></textarea>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="匹配该列表中的任一正则表达式的url都将被忽略，不进行扫描。" />
+                </div>            
+            </div>
+            <div class="option_row">
+                <div class="option_name">include列表:</div>
+                <div class="option_picker">
+                    <textarea name="include_list" id="include_list" rows="4" cols="96" placeholder="插件只抓取匹配该列表中任一正则表达式的url。每一项为一个正则表达式，多项之间由逗号分隔，例如：^https?://.*\.baidu\.com,^https?://.*\.baidu\.com\.cn,^https?://.*\.hao123\.com"></textarea>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="插件只抓取匹配该列表中任一正则表达式的url"/>
+                </div>            
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">url新鲜度(秒):</div>
+                <div class="option_picker">
+                    <input type="number" name="fresh_time" id="fresh_time" class="number" value=5 min=5 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="该时间周期内，捕获的相同url将被忽略，不重复扫描。建议该值不要设置的太小，否则会影响性能。"/>
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">http超时值(秒):</div>
+                <div class="option_picker">
+                    <input type="number" name="http_timeout" id="http_timeout" class="number" value=60 min=1 step=1 ></input>
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">创建任务失败重试次数:</div>
+                <div class="option_picker">
+                    <input type="number" name="task_fail_retry_quota" id="task_fail_retry_quota" class="number" value=10 min=1 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="任务如果创建失败，将自动重试的次数。"/>
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">更新状态失败重试次数:</div>
+                <div class="option_picker">
+                    <input type="number" name="status_fail_retry_quota" id="status_fail_retry_quota" class="number" value=10 min=1 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="任务的状态如果更新失败，将自动重试的次数。"/>
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">更新结果失败重试次数:</div>
+                <div class="option_picker">
+                    <input type="number" name="result_fail_retry_quota" id="result_fail_retry_quota" class="number" value=10 min=1 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="任务的结果如果更新失败，将自动重试的次数。"/>
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">连续运行提醒（秒）:</div>
+                <div class="option_picker">
+                    <input type="number" name="running_prompt_period" id="running_prompt_period" class="number" value=3600 min=1 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="如果插件连续运行超过了该时间周期，则提示。" />
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">连续停止提醒（秒）:</div>
+                <div class="option_picker">
+                    <input type="number" name="stopping_prompt_period" id="stopping_prompt_period" class="number" value=3600 min=1 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="如果插件连续停止超过了该时间周期，则提示。" />
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">每个域名最大url保存数量:</div>
+                <div class="option_picker">
+                    <input type="number" name="max_url_count_per_domain" id="max_url_count_per_domain" class="number" value=500 min=1 step=1 disabled="disabled" ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="每个域名可以保存的最大url数量，超过该值后，不再抓取该域名的url。建议不要设置太大，否则会影响性能。请及时清理测试完的任务。" />
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">全局最大任务保存数量:</div>
+                <div class="option_picker">
+                    <input type="number" name="max_url_count_global" id="max_url_count_global" class="number" value=2000 min=1 step=1 ></input>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="整个插件可以保存的最大任务数量，超过该值后，不再抓取任何url。建议不要设置太大，否则会影响性能。请及时清理测试完的任务。" />
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">自动清理已完成的任务:</div>
+                <div class="option_picker">
+                    <label><input name="auto_clear" id="auto_clear" set="auto_clear" type="checkbox" ></input>当达到任务最大数量上限时，扫描插件将自动清理扫描结果为安全的任务（保留扫描出漏洞的任务）。</label>
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+    
+    <div id="scan_option">
+        <div id="content">
+            <h1 id="logo">扫描任务设置选项(注意：设置实时保存并生效）</h1>
+            <div class="option_row">
+                <div class="option_name">启用cookie</div>
+                <div class="option_picker">
+                    <label><input name="enable_cookie" id="enable_cookie" set="enable_cookie" type="checkbox" value=1 ></input>开启该选项后，扫描插件将自动抓取cookie，并在扫描时携带该cookie。</label>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="带cookie扫描可能会造成脏数据、页面扭曲等非预期效果，请谨慎选择！" />
+                </div>
+            </div>    
+            <hr>
+            <div class="option_row">
+                <div class="option_name">扫描插件:</div>
+                <div class="option_picker">
+                    <label><input set='scan_plugins' name="xss" id="xss" type="checkbox" checked value=1></input>xss跨站脚本</label>
+                    <label><input set='scan_plugins' name="sql" id="sql" type="checkbox" checked value=2></input>sql注入</label>
+                    <label><input set='scan_plugins' name="php_cmd" id="php_cmd" type="checkbox" checked value=3></input>php命令执行</label>
+                    <label><input set='scan_plugins' name="struts_cmd" id="struts_cmd" type="checkbox" checked value=4></input>struts命令执行</label>
+                    <label><input set='scan_plugins' name="fastcgi_parse" id="fastcgi_parse" type="checkbox" checked value=5></input>fastcgi解析漏洞</label>
+                    <label><input set='scan_plugins' name="file_include" id="file_include" type="checkbox" checked value=6></input>文件包含</label>
+                    <label><input set='scan_plugins' name="url_location" id="url_location" type="checkbox" checked value=7></input>url跳转</label>
+                    <label><input set='scan_plugins' name="httponly" id="httponly" type="checkbox" checked value=8></input>httponly</label>
+                </div>
+            </div>
+            <div class="option_row">
+                <div class="option_name">扫描类型:</div>
+                <div class="option_picker">
+                    <label><input set='scan_step' name="vulnerability" id="vulnerability" type="checkbox" checked value=1></input>漏洞扫描</label>
+                    <label><input set='scan_step' name="weakness" id="weakness" type="checkbox" value=2></input>弱点扫描</label>
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">host绑定列表:</div>
+                <div class="option_picker">
+                    <textarea name="hostbind_list" id="hostbind_list" rows="4" cols="96" placeholder="每一项由逗号分隔，host和ip之间由冒号分隔，例如：tieba.baidu.com:10.46.22.123,test.baidu.com:127.0.0.1,注意顺序，域名在前，ip在后。"></textarea>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="与系统hosts文件功能类似" />
+                </div>            
+            </div>
+            <div class="option_row">
+                <div class="option_name">User-Agent:</div>
+                <div class="option_picker">
+                    <textarea name="user_agent" id="user_agent" rows="4" cols="96"></textarea>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="一般情况下使用默认ua即可，但有些站点可能会对特定的ua进行过滤处理"/>
+                </div>            
+            </div>
+            <hr>
+        </div>
+    </div>
+    
+    <div id="user_option">
+        <div id="content">
+            <h1 id="logo">用户信息设置(注意：设置实时保存并生效）</h1>
+            <div class="option_row">
+                <div class="option_name">用户名称:</div>
+                <div class="option_picker">
+                    <label><input name="user_name" id="user_name" style="width:400px;"></input></label>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="填写个人工作信息以便我们更及时地为你提供安全服务保障，协助您修复漏洞。" />
+                </div>
+                <div class="option_name">邮箱地址:</div>
+                <div class="option_picker">
+                    <label><input name="email" id="email" style="width:400px;"></input></label>
+                    <img src="../img/hint_alt_16_gray.png" class="hint-left" title="填写邮箱，任务完成时，扫描报告将自动通过邮件发送给您。" />
+                </div>
+                <div class="option_name">部门名称:</div>
+                <div class="option_picker">
+                    <label><input name="department" id="department" style="width:400px;"></input></label>
+                </div>
+                <hr>
+                <!--
+                <div class="option_name">插件唯一识别码:</div>
+                <div class="option_picker">
+                    <label><input name="guid" id="guid" style="width:400px;" readonly></input></label>
+                </div>
+                -->
+                <hr>
+            </div>
+        </div>
+    </div>
+    
+    <div id="version_option">
+        <div id="content">
+            <h1 id="logo">扫描插件版本信息</h1>
+            <div class="option_row">
+                <div class="option_name">版本号:</div>
+                <div class="option_picker">
+                    <label><input name="version" id="version" class="version_info" style="width:400px;" readonly disabled="disabled"></input></label>
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">插件唯一识别码:</div>
+                <div class="option_picker">
+                    <label><input name="guid" id="guid" class="version_info" style="width:400px;" readonly disabled="disabled"></input></label>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" />
+                </div>
+            </div>
+            <hr>
+            <div class="option_row">
+                <div class="option_name">内置exclude列表:</div>
+                <div class="option_picker">
+                    <textarea name="inter_exclude_list" id="inter_exclude_list" class="version_info" rows="4" cols="96" readonly disabled="disabled">^http://.*scan\.baidu\.com,^https?://.*icafe\.baidu\.com,^http://.*security\.baidu\.com,^https?://.*winrelay\.baidu\.com,^https?://.*erp\.baidu\.com,^https?://.*fusion\.baidu\.com,^https?://.*hm\.baidu\.com,^http://.*rms\.baidu\.com,^http://.*family\.baidu\.com,^http://.*babel\.baidu\.com,^http://.*noah\.baidu\.com,^http://.*cq01-testing-ssl142\.vm\.baidu\.com,^http://.*tc-scanner01\.tc\.baidu\.com</textarea>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="内置exclude列表优先级高于用户设置的exclude列表，并且只读。"/>
+                </div>            
+            </div>
+            <div class="option_row">
+                <div class="option_name">内置include列表:</div>
+                <div class="option_picker">
+                    <textarea name="inter_include_list" id="inter_include_list" class="version_info" rows="4" cols="96" readonly disabled="disabled">^https?:\/\/((\/\/\d{1,3}[.]){3}\/\/\d{1,3}|([0-9a-zA-Z_!~*'()-]+[.])*(baidu.com))(:[0-9]{1,4})?(\/.*)*$,^https?:\/\/((\/\/\d{1,3}[.]){3}\/\/\d{1,3}|([0-9a-zA-Z_!~*'()-]+[.])*(hao123.com))(:[0-9]{1,4})?(\/.*)*$,^https?:\/\/((\/\/\d{1,3}[.]){3}\/\/\d{1,3}|([0-9a-zA-Z_!~*'()-]+[.])*(baifubao.com))(:[0-9]{1,4})?(\/.*)*$,^https?:\/\/((\/\/\d{1,3}[.]){3}\/\/\d{1,3}|([0-9a-zA-Z_!~*'()-]+[.])*(shifen.com))(:[0-9]{1,4})?(\/.*)*$,^https?:\/\/((\/\/\d{1,3}[.]){3}\/\/\d{1,3}|([0-9a-zA-Z_!~*'()-]+[.])*(skycn.com))(:[0-9]{1,4})?(\/.*)*$,^https?:\/\/((10\.\d+|(172\.(1[6-9]|2[0-9]|3[01])))\.\d+\.\d+)(:[0-9]{1,4})?(\/.*)*$</textarea>
+                    <img src="../img/hint_alt_16_gray.png" class="hint" title="内置include列表优先级高于用户设置的include列表，并且只读。"/>
+                </div>            
+            </div>
+            <hr>   
+            <div class="option_row">
+                <div class="option_name">revision:</div>
+                <div class="option_picker">
+                    <textarea name="revision" id="revision" class="version_info" rows="32" cols="96" readonly disabled="disabled"></textarea>
+                </div>            
+            </div>
+            <hr>            
+        </div>
+    </div>
+</div>
+</body>
+</html>

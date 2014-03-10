@@ -1,0 +1,33 @@
+{  
+    "manifest_version": 2,
+    
+    "name": "扫雷",  
+    "version": "1.0.6.5",  
+    "description": "Chrome plugin for scan.baidu.com",
+    
+    "background": {
+        "persistent": true,
+        "page": "html/background.html"
+    },   
+    "browser_action": {
+    "default_icon": "icon/saolei_logo_48.png" ,
+    "default_title": "Chrome plugin for scan.baidu.com",
+    "default_popup": "html/popup.html"
+    },
+    "icons": {
+      "128": "icon/logo-128.png",
+      "48": "icon/logo-48.png"
+    },
+    "homepage_url": "http://scan.baidu.com",
+    "options_page": "html/options.html",
+    "permissions": [ 
+        "tabs",
+        "unlimitedStorage",
+        "notifications",
+        "webRequest",
+        "webRequestBlocking",
+        "http://*/",
+        "https://*/",
+        "background"
+    ]
+} 
